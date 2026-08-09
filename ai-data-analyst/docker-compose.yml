@@ -1,0 +1,104 @@
+version: "3.8"
+
+services:
+  # ── MySQL Database ─────────────────────────────────────────────────────────
+  db:
+    image: mysql:8.0
+    container_name: ai_da_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root_secure_password_999
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-ai_data_analyst}
+      MYSQL_USER: ${MYSQL_USER:-analyst_user}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-your_strong_password_here}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # ── Redis Cache ────────────────────────────────────────────────────────────
+  redis:
+    image: redis:7.0-alpine
+    container_name: ai_da_redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ── FastAPI Backend REST API ────────────────────────────────────────────────
+  backend:
+    build: ./backend
+    container_name: ai_da_backend
+    restart: always
+    environment:
+      # Application Core Config
+      - APP_ENV=${APP_ENV:-development}
+      - APP_HOST=0.0.0.0
+      - APP_PORT=8000
+      
+      # Database Target overrides (connecting inside Docker network)
+      - MYSQL_HOST=db
+      - MYSQL_PORT=3306
+      - MYSQL_USER=${MYSQL_USER:-analyst_user}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD:-your_strong_password_here}
+      - MYSQL_DATABASE=${MYSQL_DATABASE:-ai_data_analyst}
+
+      # Redis Cache overrides (connecting inside Docker network)
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=
+      - REDIS_DB=0
+
+      # LLM / Tavily credentials inherited from root .env
+      - LLM_PROVIDER=${LLM_PROVIDER:-gemini}
+      - LLM_API_KEY=${LLM_API_KEY}
+      - LLM_MODEL=${LLM_MODEL:-gemini-1.5-flash}
+      - TAVILY_API_KEY=${TAVILY_API_KEY}
+
+      # Security & JWT details
+      - SECRET_KEY=${SECRET_KEY:-dev-only-secret-change-in-production}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY:-generate_another_long_random_secret_here}
+      - JWT_ALGORITHM=${JWT_ALGORITHM:-HS256}
+      - JWT_ACCESS_TOKEN_EXPIRE_MINUTES=${JWT_ACCESS_TOKEN_EXPIRE_MINUTES:-60}
+
+      # Upload directory inside container mount
+      - UPLOAD_DIR=/app/uploads
+      - MAX_UPLOAD_SIZE_MB=${MAX_UPLOAD_SIZE_MB:-50}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+    ports:
+      - "8000:8000"
+    volumes:
+      - uploads:/app/uploads
+      - exports:/app/exports
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # ── React + Vite Dashboard SPA ──────────────────────────────────────────────
+  frontend:
+    build: ./frontend
+    container_name: ai_da_frontend
+    restart: always
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+
+volumes:
+  mysql_data:
+  redis_data:
+  uploads:
+  exports:

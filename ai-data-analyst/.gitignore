@@ -1,0 +1,73 @@
+# ──────────────────────────────────────────────────
+#  AI Data Analyst Agent — .gitignore
+# ──────────────────────────────────────────────────
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+*.whl
+
+# Virtual environments
+.venv/
+venv/
+env/
+.env
+ENV/
+
+# Environment variables — NEVER commit .env
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# Logs
+logs/
+*.log
+*.log.*
+
+# Data files (large CSVs should not be committed)
+data/*.csv
+data/*.xlsx
+data/*.parquet
+!data/sales_sample.csv       # allow a small sample if needed
+
+# Coverage / test artifacts
+.coverage
+htmlcov/
+.pytest_cache/
+.mypy_cache/
+
+# Node / Frontend
+frontend/node_modules/
+frontend/.next/
+frontend/dist/
+frontend/build/
+
+# Docker
+*.pid
+
+# Alembic (generated migration files are committed, but not the cache)
+backend/alembic/__pycache__/
+
+# Uploads (user-uploaded files should not be committed)
+uploads/

@@ -1,0 +1,165 @@
+/* DashboardPage.css */
+.dashboard {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+/* ── Nav bar ───────────────────────────────── */
+.dashboard-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.6rem 1.25rem;
+  border-radius: 0;
+  border-left: none;
+  border-right: none;
+  border-top: none;
+  border-bottom: 1px solid var(--border-subtle);
+  flex-shrink: 0;
+  gap: 1rem;
+  backdrop-filter: blur(20px);
+  position: relative;
+  z-index: var(--z-overlay);
+}
+
+.dashboard-nav__center {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.dashboard-nav__title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+}
+
+.dashboard-nav__right {
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+}
+
+.dashboard-nav__file {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  max-width: 200px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 0.2rem 0.6rem;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+}
+
+/* ── Three-panel layout ─────────────────────── */
+.dashboard-layout {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 240px 1fr 280px;
+  gap: 0;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.dashboard-col {
+  overflow: hidden;
+  border-right: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+}
+
+.dashboard-col--left {
+  overflow-y: auto;
+  background: rgba(255,255,255,0.01);
+}
+
+.dashboard-col--center {
+  border-radius: 0;
+  border: none;
+  border-right: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+}
+
+.dashboard-col--right {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border-right: none;
+  overflow: hidden;
+}
+
+.dashboard-col--right .chart-viewer {
+  flex: 1;
+  border-radius: 0;
+  border: none;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.dashboard-col--right .download-bar {
+  border-radius: 0;
+  border: none;
+  flex-shrink: 0;
+}
+
+/* Column header */
+.dashboard-col__header {
+  padding: 0.75rem 1rem 0;
+  flex-shrink: 0;
+}
+
+.dashboard-col__label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* Profile error */
+.dashboard-profile-error {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0 1rem;
+  padding: 0.65rem 0.85rem;
+}
+.dashboard-profile-error p {
+  font-size: 0.78rem;
+  color: var(--accent-rose);
+  margin: 0;
+}
+
+/* Error page */
+.dashboard-error {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  color: var(--text-muted);
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .dashboard-layout {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr auto;
+    overflow-y: auto;
+  }
+  .dashboard-col { border-right: none; border-bottom: 1px solid var(--border-subtle); }
+  .dashboard-col--left { overflow-y: visible; max-height: none; }
+  .dashboard-col--center { min-height: 60vh; }
+  .dashboard-col--right { flex-direction: column; }
+  .dashboard-col--right .chart-viewer { min-height: 300px; }
+}

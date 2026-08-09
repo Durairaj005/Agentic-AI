@@ -1,0 +1,64 @@
+# ==============================================================
+# AI Data Analyst Agent — Python Dependencies
+# ==============================================================
+#
+# Phase 1 (current) requirements are marked with [P1].
+# Future-phase requirements are listed but commented out so
+# you can see the full roadmap without installing everything now.
+# ==============================================================
+
+# ── [P1] Data Analysis ────────────────────────────────────────
+pandas>=2.1.0
+numpy>=1.26.0
+scipy>=1.11.0          # statistical functions (correlation, normality tests)
+openpyxl>=3.1.0        # read/write .xlsx files
+xlrd>=2.0.1            # read older .xls files
+
+# ── [P1] Terminal / CLI ───────────────────────────────────────
+rich>=13.7.0            # beautiful terminal output (tables, colors, progress)
+tabulate>=0.9.0         # fallback table formatter
+python-dotenv>=1.0.0   # loads .env into os.environ
+
+# ── [P2] LLM Integration ─────────────────────────────────────
+# google-generativeai>=0.7.0
+# openai>=1.40.0             # fallback provider
+
+# ── [P3] Agent Framework ─────────────────────────────────────
+langgraph>=0.2.20
+langchain-core>=0.3.0
+# langchain-google-genai>=1.0.0
+
+# ── [P4] Visualization ───────────────────────────────────────
+plotly>=5.22.0          # chart generation (we import it in P1 to verify install)
+kaleido>=0.2.1          # export plotly charts to PNG/SVG
+
+# ── [P5] API Framework ───────────────────────────────────────
+fastapi>=0.111.0
+uvicorn[standard]>=0.30.0
+python-multipart>=0.0.9   # file uploads
+
+# ── [P5] Validation ──────────────────────────────────────────
+pydantic>=2.7.0
+pydantic-settings>=2.3.0
+
+# ── [P6] Database ────────────────────────────────────────────
+sqlalchemy>=2.0.0
+alembic>=1.13.0
+pymysql>=1.1.0
+cryptography>=42.0.0       # required by pymysql
+
+# ── [P7] Cache ───────────────────────────────────────────────
+redis>=5.0.0
+hiredis>=2.3.0
+
+# ── [P9] Web Research ────────────────────────────────────────
+# tavily-python>=0.3.0
+
+# ── [P10] Authentication ─────────────────────────────────────
+python-jose[cryptography]>=3.3.0
+passlib[bcrypt]>=1.7.4
+email-validator>=2.0.0
+
+# ── [P12] Testing ────────────────────────────────────────────
+pytest>=8.2.0
+pytest-asyncio>=0.23.0

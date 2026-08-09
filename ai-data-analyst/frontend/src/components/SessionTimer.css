@@ -1,0 +1,85 @@
+/* SessionTimer.css */
+.session-timer {
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+  background: rgba(255,255,255,0.03);
+  transition: all 0.4s ease;
+}
+
+.session-timer--safe {
+  border-color: rgba(16,185,129,0.2);
+  background: rgba(16,185,129,0.04);
+}
+.session-timer--warn {
+  border-color: rgba(245,158,11,0.3);
+  background: rgba(245,158,11,0.05);
+  animation: glow-pulse-amber 2s ease-in-out infinite;
+}
+.session-timer--critical {
+  border-color: rgba(244,63,94,0.4);
+  background: rgba(244,63,94,0.07);
+  animation: glow-pulse-rose 1.2s ease-in-out infinite;
+}
+.session-timer--expired {
+  border-color: rgba(244,63,94,0.25);
+  background: rgba(244,63,94,0.04);
+  opacity: 0.7;
+}
+
+@keyframes glow-pulse-amber {
+  0%,100% { box-shadow: 0 0 8px rgba(245,158,11,0.1); }
+  50%      { box-shadow: 0 0 16px rgba(245,158,11,0.25); }
+}
+@keyframes glow-pulse-rose {
+  0%,100% { box-shadow: 0 0 8px rgba(244,63,94,0.15); }
+  50%      { box-shadow: 0 0 20px rgba(244,63,94,0.35); }
+}
+
+.session-timer__header {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 0.35rem;
+}
+.session-timer--safe     .session-timer__header { color: var(--accent-emerald); }
+.session-timer--warn     .session-timer__header { color: var(--accent-amber); }
+.session-timer--critical .session-timer__header { color: var(--accent-rose); }
+.session-timer--expired  .session-timer__header { color: var(--text-muted); }
+
+.session-timer__time {
+  font-family: var(--font-mono);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: 0.05em;
+  margin-bottom: 0.5rem;
+}
+
+.session-timer__bar {
+  height: 3px;
+  border-radius: 9999px;
+  background: rgba(255,255,255,0.06);
+  overflow: hidden;
+}
+
+.session-timer__fill {
+  height: 100%;
+  border-radius: 9999px;
+  transition: width 1s linear, background 0.4s ease;
+}
+.session-timer--safe     .session-timer__fill { background: var(--accent-emerald); }
+.session-timer--warn     .session-timer__fill { background: var(--accent-amber); }
+.session-timer--critical .session-timer__fill { background: var(--accent-rose); }
+.session-timer--expired  .session-timer__fill { background: var(--text-muted); width: 0% !important; }
+
+.session-timer__hint {
+  font-size: 0.72rem;
+  margin-top: 0.4rem;
+}
+.session-timer--warn     .session-timer__hint { color: var(--accent-amber); }
+.session-timer--critical .session-timer__hint { color: var(--accent-rose); font-weight: 600; }

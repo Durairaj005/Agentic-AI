@@ -1,0 +1,44 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+backend/venv/
+ENV/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Database & Local Storage
+*.db
+*.sqlite3
+recruitment.db
+backend/recruitment.db
+storage/resumes/*
+!storage/resumes/.gitkeep
+storage/faiss_indexes/*
+!storage/faiss_indexes/.gitkeep
+backend/storage/resumes/*
+!backend/storage/resumes/.gitkeep
+backend/storage/faiss_indexes/*
+!backend/storage/faiss_indexes/.gitkeep
+
+# Node / Frontend
+node_modules/
+frontend/node_modules/
+frontend/dist/
+*.local
+
+# Environment variables
+.env
+backend/.env
+frontend/.env
+
+# IDE & OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

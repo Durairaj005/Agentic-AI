@@ -70,4 +70,25 @@ export const healthCheck = async () => {
   return res.data;
 };
 
+// ── Safe Blob Download Helper ──────────────────────────────────────────────
+export const downloadChartImage = async (url, filename = 'chart.png') => {
+  if (!url) return;
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('Failed to fetch image blob');
+    const blob = await res.blob();
+    const blobUrl = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = blobUrl;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+  } catch (err) {
+    console.warn('Cross-origin blob fetch failed, opening safely in new tab:', err);
+    window.open(url, '_blank');
+  }
+};
+
 export default api;

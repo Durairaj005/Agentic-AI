@@ -16,13 +16,27 @@ export default function DashboardPage() {
   const [profile, setProfile]       = useState(null);
   const [profileErr, setProfileErr] = useState(null);
   const [uploadTime, setUploadTime] = useState(null);
-  const [chartUrl, setChartUrl]     = useState(null);
-  const [messages, setMessages]     = useState([]);
+  const [chartUrl, setChartUrl]     = useState(() => {
+    return sessionStorage.getItem(`active_chart_${decodedName}`) || null;
+  });
+  const [messages, setMessages]     = useState(() => {
+    try {
+      const saved = sessionStorage.getItem(`chat_messages_${decodedName}`);
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      return [];
+    }
+  });
 
-  // Retrieve stored upload time from sessionStorage
+  // Retrieve stored upload time and active chart from sessionStorage
   useEffect(() => {
     const t = sessionStorage.getItem(`upload_time_${decodedName}`);
     setUploadTime(t || new Date().toISOString());
+
+    const savedChart = sessionStorage.getItem(`active_chart_${decodedName}`);
+    if (savedChart) {
+      setChartUrl(savedChart);
+    }
   }, [decodedName]);
 
   // Fetch profile on mount
@@ -38,11 +52,12 @@ export default function DashboardPage() {
 
   // Called by ChatPanel when a query completes
   const handleQueryComplete = useCallback((result) => {
-    // If backend returned a chart URL, display it immediately
+    // If backend returned a chart URL, display it immediately and persist in session
     if (result?.chart_url) {
       setChartUrl(result.chart_url);
+      sessionStorage.setItem(`active_chart_${decodedName}`, result.chart_url);
     }
-  }, []);
+  }, [decodedName]);
 
   // Mirror messages from ChatPanel via callback
   const messagesRef = useRef([]);
@@ -113,6 +128,7 @@ export default function DashboardPage() {
           <ChatPanel
             filename={decodedName}
             onQueryComplete={handleQueryComplete}
+            onMessagesUpdate={handleMessagesUpdate}
           />
         </div>
 

@@ -7,8 +7,15 @@ import './ChatPanel.css';
 const POLL_INTERVAL_MS = 1500;
 const MAX_POLLS = 120; // 3 minutes max
 
-export default function ChatPanel({ filename, onQueryComplete }) {
-  const [messages, setMessages]     = useState([]);
+export default function ChatPanel({ filename, onQueryComplete, onMessagesUpdate }) {
+  const [messages, setMessages] = useState(() => {
+    try {
+      const saved = sessionStorage.getItem(`chat_messages_${filename}`);
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      return [];
+    }
+  });
   const [input, setInput]           = useState('');
   const [loading, setLoading]       = useState(false);
   const bottomRef                   = useRef(null);
@@ -20,6 +27,31 @@ export default function ChatPanel({ filename, onQueryComplete }) {
   };
 
   useEffect(() => { scrollToBottom(); }, [messages]);
+
+  // Reload messages when dataset filename changes
+  useEffect(() => {
+    try {
+      const saved = sessionStorage.getItem(`chat_messages_${filename}`);
+      if (saved) {
+        setMessages(JSON.parse(saved));
+      } else {
+        setMessages([]);
+      }
+    } catch (e) {
+      setMessages([]);
+    }
+  }, [filename]);
+
+  // Persist messages to sessionStorage on every change
+  useEffect(() => {
+    try {
+      const toStore = messages.filter((m) => !m.isLoading);
+      sessionStorage.setItem(`chat_messages_${filename}`, JSON.stringify(toStore));
+    } catch (e) {
+      console.warn('Failed to save chat to sessionStorage:', e);
+    }
+    onMessagesUpdate?.(messages);
+  }, [messages, filename, onMessagesUpdate]);
 
   const addMessage = useCallback((msg) => {
     setMessages((prev) => [...prev, { id: Date.now() + Math.random(), ...msg }]);

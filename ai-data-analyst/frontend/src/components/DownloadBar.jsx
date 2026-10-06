@@ -1,4 +1,5 @@
 import { FileJson, FileText, Image } from 'lucide-react';
+import { downloadChartImage } from '../api/client';
 import './DownloadBar.css';
 
 export default function DownloadBar({ filename, messages, chartUrl }) {
@@ -24,10 +25,7 @@ export default function DownloadBar({ filename, messages, chartUrl }) {
 
   const handleDownloadChart = () => {
     if (!chartUrl) return;
-    const a = document.createElement('a');
-    a.href = chartUrl;
-    a.download = 'chart.png';
-    a.click();
+    downloadChartImage(chartUrl, `${filename.replace(/\.[^.]+$/, '')}_chart.png`);
   };
 
   const handleDownloadCSV = () => {

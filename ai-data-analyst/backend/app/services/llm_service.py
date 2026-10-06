@@ -43,6 +43,7 @@ from app.tools.pandas_tools import (
     calculate_count,
     group_by,
     top_n,
+    bottom_n,
     filter_rows,
     time_series_aggregate,
     compare_periods,
@@ -148,6 +149,15 @@ def top_n_analysis(group_column: str, value_column: str, n: int = 5, agg_func: s
     if _ACTIVE_DF is None:
         return {"success": False, "error": "No dataset loaded."}
     res = top_n(_ACTIVE_DF, group_column, value_column, n, agg_func)
+    return _serialize_result(res)
+
+
+def bottom_n_analysis(group_column: str, value_column: str, n: int = 5, agg_func: str = "sum") -> dict:
+    """Find the bottom N (lowest / underperforming / least sold) categories or groups ranked by an aggregated value."""
+    global _ACTIVE_DF
+    if _ACTIVE_DF is None:
+        return {"success": False, "error": "No dataset loaded."}
+    res = bottom_n(_ACTIVE_DF, group_column, value_column, n, agg_func)
     return _serialize_result(res)
 
 
@@ -344,6 +354,7 @@ class LLMService:
             get_row_count,
             group_by_analysis,
             top_n_analysis,
+            bottom_n_analysis,
             filter_data,
             time_series_analysis,
             compare_periods_analysis,
@@ -381,13 +392,28 @@ class LLMService:
 
         col_str = "\n".join(columns_desc)
 
-        return f"""You are a helpful AI Data Analyst Agent for the dataset '{self.file_name}' ({len(self.df):,} rows).
-Here is the dataset schema:
+        return f"""You are an executive-level AI Business Data Analyst for dataset '{self.file_name}' ({len(self.df):,} rows).
+Schema overview:
 {col_str}
 
-Use the tools provided to query the dataset and answer the user's question.
-If the question requires external research (such as explaining macro market trends, competitor information, or real-world events not present in the CSV dataset), use the `web_research_tool` to perform online research.
-Keep your explanations professional, clear, and business-focused.
+Use the analytical tools provided to calculate exact numbers, generate charts, or conduct web research when needed.
+
+CRITICAL INSTRUCTIONS FOR DELIVERING NATURAL, EXECUTIVE-READY ANSWERS:
+1. Speak naturally, smoothly, and conversationally in clear, professional English as if briefing an executive or decision-maker.
+2. NEVER use technical query syntax or database jargon. Specifically:
+   - NEVER say '(sum of the sales column for this product)', 'based on column X', or 'queried the dataset'.
+   - NEVER say 'grouped by column' or 'the function returned'.
+   - NEVER output raw database key-value formats like '**Field:** **Value** - **Field:** Value'.
+   - Speak directly about real business entities (e.g., 'The top-performing product is **Laptop Pro 15**, which achieved **$110,616,291.98** in total sales revenue.').
+3. Number and currency formatting:
+   - Currency: Format cleanly with '$' and commas (e.g., $110,616,291.98 or $110.6M).
+   - Percentages: Format with '%' (e.g., 18.5%).
+   - Counts: Format with commas (e.g., 12,000 orders).
+4. Response structure:
+   - Lead directly with a natural, human-friendly answer to the user's specific question.
+   - For single-item questions, provide a clear, direct sentence followed by a brief, helpful insight or context.
+   - For rankings, top items, or multi-item summaries, use clean, well-spaced markdown bullet points.
+   - Do NOT output pseudo-code or raw dictionary dumps.
 """
 
     def _get_groq_tool_schemas(self) -> list[dict]:
@@ -489,6 +515,23 @@ Keep your explanations professional, clear, and business-focused.
                             "group_column": {"type": "string", "description": "The column to group by (e.g. 'product_name', 'customer_name', 'region')"},
                             "value_column": {"type": "string", "description": "The numeric column to rank by (e.g. 'sales', 'profit')"},
                             "n": {"type": "integer", "description": "The number of top records to return. Default is 5.", "default": 5},
+                            "agg_func": {"type": "string", "description": "Aggregation function ('sum', 'mean', 'count')", "default": "sum"}
+                        },
+                        "required": ["group_column", "value_column"]
+                    }
+                }
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "bottom_n_analysis",
+                    "description": "Find the bottom / lowest / least performing categories or groups ranked by an aggregated value (e.g. lowest product by sales, least profitable region, worst category).",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "group_column": {"type": "string", "description": "The column to group by (e.g. 'product', 'region', 'category')"},
+                            "value_column": {"type": "string", "description": "The numeric column to rank by (e.g. 'sales', 'profit', 'quantity')"},
+                            "n": {"type": "integer", "description": "Number of lowest records to return. Default is 5 (use 1 for the single lowest).", "default": 5},
                             "agg_func": {"type": "string", "description": "Aggregation function ('sum', 'mean', 'count')", "default": "sum"}
                         },
                         "required": ["group_column", "value_column"]
@@ -817,9 +860,22 @@ Keep your explanations professional, clear, and business-focused.
                 })
 
                 # Follow-up completion for final business explanation
+                explain_messages = [
+                    {"role": "system", "content": system_instruction},
+                    {
+                        "role": "user",
+                        "content": f"""User question: "{query}"
+
+Analysis results:
+- Analysis tool used: {tool_name}
+- Calculated result: {json.dumps(tool_output)}
+
+Please explain this analytical finding to the user naturally, clearly, and conversationally in plain English. Do not mention internal tool names or column calculation mechanics."""
+                    }
+                ]
                 final_response = self.client.chat.completions.create(
                     model=self.model,
-                    messages=messages,
+                    messages=explain_messages,
                     temperature=0.0
                 )
                 return final_response.choices[0].message.content, raw_result
@@ -850,6 +906,8 @@ Keep your explanations professional, clear, and business-focused.
                 return group_by(self.df, args["group_column"], args["value_column"], args.get("agg_func", "sum"))
             elif wrapper_name == "top_n_analysis":
                 return top_n(self.df, args["group_column"], args["value_column"], args.get("n", 5), args.get("agg_func", "sum"))
+            elif wrapper_name == "bottom_n_analysis":
+                return bottom_n(self.df, args["group_column"], args["value_column"], args.get("n", 5), args.get("agg_func", "sum"))
             elif wrapper_name == "filter_data":
                 val = args["value"]
                 try:

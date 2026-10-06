@@ -13,6 +13,7 @@ from __future__ import annotations
 from google import genai
 from google.genai import types
 from google.genai.errors import APIError, ClientError
+import re
 import logging
 import json
 from typing import Any, Dict, List, Literal, Optional, TypedDict
@@ -271,46 +272,47 @@ class AgentService:
                     contents=follow_up_content,
                     config=config,
                 )
-                return {"explanation": response.text}
+                raw_text = response.text
+                return {"explanation": self._clean_natural_text(raw_text)}
             except Exception as e:
                 raise LLMServiceError(f"Gemini explanation error: {e}")
 
         elif self.llm.provider == "groq":
             try:
-                messages = [
+                explain_messages = [
                     {"role": "system", "content": system_instruction},
-                    {"role": "user", "content": query},
-                    # Mock assistant tool request
                     {
-                        "role": "assistant",
-                        "content": None,
-                        "tool_calls": [{
-                            "id": "call_mock",
-                            "type": "function",
-                            "function": {
-                                "name": tool_name,
-                                "arguments": json.dumps(state["tool_args"])
-                            }
-                        }]
-                    },
-                    # Tool result response
-                    {
-                        "role": "tool",
-                        "tool_call_id": "call_mock",
-                        "name": tool_name,
-                        "content": json.dumps(tool_result)
+                        "role": "user",
+                        "content": f"""User question: "{query}"
+
+Analysis results:
+- Analysis tool used: {tool_name}
+- Calculated result: {json.dumps(tool_result)}
+
+Please explain this analytical finding to the user naturally, clearly, and conversationally in plain English. Do not mention internal tool names or column calculation mechanics."""
                     }
                 ]
                 response = self.llm.client.chat.completions.create(
                     model=self.llm.model,
-                    messages=messages,
+                    messages=explain_messages,
                     temperature=0.0
                 )
-                return {"explanation": response.choices[0].message.content}
+                raw_text = response.choices[0].message.content
+                return {"explanation": self._clean_natural_text(raw_text)}
             except Exception as e:
                 raise LLMServiceError(f"Groq explanation error: {e}")
 
         return {"explanation": "Unsupported LLM Provider."}
+
+    def _clean_natural_text(self, text: Optional[str]) -> Optional[str]:
+        if not text:
+            return text
+        # Strip robotic database phrasing like '(sum of the sales column for this product)'
+        text = re.sub(r'\s*\(\s*sum of the\s+\*?[a-zA-Z_]+\*?\s+column[^\)]*\)', '', text, flags=re.IGNORECASE)
+        text = re.sub(r'\s*\(\s*based on the\s+\*?[a-zA-Z_]+\*?\s+column[^\)]*\)', '', text, flags=re.IGNORECASE)
+        text = re.sub(r'\s*\(\s*from the\s+\*?[a-zA-Z_]+\*?\s+column[^\)]*\)', '', text, flags=re.IGNORECASE)
+        text = re.sub(r' {2,}', ' ', text)
+        return text.strip()
 
     # ── Conditional Routing Decisions ─────────────────────────────────────────
 

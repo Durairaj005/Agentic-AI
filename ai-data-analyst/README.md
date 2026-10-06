@@ -304,6 +304,17 @@ npm install
 npm run dev
 ```
 
+### Option C — One-Click Windows Launcher (`run.bat`)
+
+Simply double-click `run.bat` or run from terminal:
+
+```cmd
+run.bat
+```
+
+This automatically launches both the FastAPI backend and React frontend services and opens [http://127.0.0.1:5173/](http://127.0.0.1:5173/) in your default browser.
+
+
 ---
 
 ## 📊 Example Questions

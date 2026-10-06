@@ -272,6 +272,17 @@ def top_n(
     return group_by(df, group_col, value_col, agg_func, top_n=n, sort_descending=True)
 
 
+def bottom_n(
+    df: pd.DataFrame,
+    group_col: str,
+    value_col: str,
+    n: int = 5,
+    agg_func: AggFunc = "sum",
+) -> ToolResult:
+    """Convenience wrapper: bottom N (lowest / underperforming) groups by value. Delegates to group_by."""
+    return group_by(df, group_col, value_col, agg_func, top_n=n, sort_descending=False)
+
+
 # ── Filtering ─────────────────────────────────────────────────────────────────
 
 Operator = Literal["==", "!=", ">", ">=", "<", "<=", "contains", "startswith"]

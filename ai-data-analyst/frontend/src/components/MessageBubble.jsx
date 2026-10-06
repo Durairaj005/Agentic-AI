@@ -1,4 +1,5 @@
-import { CheckCircle, AlertCircle, Bot, User } from 'lucide-react';
+import { CheckCircle, AlertCircle, Bot, User, Code2 } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
 import './MessageBubble.css';
 
 export default function MessageBubble({ message }) {
@@ -38,11 +39,16 @@ export default function MessageBubble({ message }) {
             <span className="msg-typing__dot" />
             <span className="msg-typing__dot" />
           </div>
-          <span className="msg-bubble__hint">Thinking…</span>
+          <span className="msg-bubble__hint">Analyzing data…</span>
         </div>
       </div>
     );
   }
+
+  // Format raw result for optional debug inspection
+  const formattedRawResult = typeof result === 'object' 
+    ? JSON.stringify(result, null, 2) 
+    : String(result || '');
 
   return (
     <div className={`msg-row msg-row--ai animate-fade-in-up`}>
@@ -51,22 +57,30 @@ export default function MessageBubble({ message }) {
       </div>
 
       <div className={`msg-bubble ${isError ? 'msg-bubble--error' : 'msg-bubble--ai'}`}>
-        {/* Chart badge OR raw result value */}
-        {result && !isError && (
-          <div className="msg-result">
+        {/* Chart badge if chart generated */}
+        {isChartResult && !isError && (
+          <div className="msg-result msg-result--chart">
             <CheckCircle size={13} className="msg-result__icon" />
-            {isChartResult
-              ? <span className="msg-result__value">📊 Chart generated — see Chart Output panel →</span>
-              : <span className="msg-result__value">{result}</span>
-            }
+            <span className="msg-result__value">📊 Chart generated — see Chart Output panel →</span>
           </div>
         )}
 
-        {/* Main explanation */}
+        {/* Clean Natural Markdown Explanation */}
         {cleanContent && (
-          <p className="msg-bubble__text">
-            {cleanContent}
-          </p>
+          <div className="msg-markdown">
+            <ReactMarkdown>{cleanContent}</ReactMarkdown>
+          </div>
+        )}
+
+        {/* Optional Collapsed Raw Query Result (only if non-chart and technical data exists) */}
+        {result && !isChartResult && !isError && formattedRawResult.trim() !== '' && (
+          <details className="msg-raw-details">
+            <summary className="msg-raw-summary">
+              <Code2 size={12} />
+              <span>Raw dataset output</span>
+            </summary>
+            <pre className="msg-raw-pre">{formattedRawResult}</pre>
+          </details>
         )}
 
         {/* Errors */}

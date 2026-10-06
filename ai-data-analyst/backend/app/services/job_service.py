@@ -34,8 +34,9 @@ class JobStatusService:
         if cache_service.is_available():
             key = self._get_key(job_id)
             try:
-                # Store all fields in Redis hash
-                cache_service.redis_client.hset(key, mapping=job_data)
+                # Redis does not allow None values in hashes; convert None to empty string
+                redis_mapping = {k: (v if v is not None else "") for k, v in job_data.items()}
+                cache_service.redis_client.hset(key, mapping=redis_mapping)
                 # Set TTL of 2 hours
                 cache_service.redis_client.expire(key, 7200)
                 logger.info(f"Job Service: Saved job '{job_id}' status '{status}' to Redis.")
@@ -61,7 +62,7 @@ class JobStatusService:
                         "job_id": data.get("job_id"),
                         "status": data.get("status"),
                         "result": json.loads(data["result"]) if data.get("result") else None,
-                        "error": data.get("error"),
+                        "error": data.get("error") or None,
                         "updated_at": data.get("updated_at")
                     }
             except Exception as e:
@@ -74,7 +75,7 @@ class JobStatusService:
                 "job_id": data.get("job_id"),
                 "status": data.get("status"),
                 "result": json.loads(data["result"]) if data.get("result") else None,
-                "error": data.get("error"),
+                "error": data.get("error") or None,
                 "updated_at": data.get("updated_at")
             }
 
